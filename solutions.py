@@ -235,27 +235,78 @@ def contains_shiny_gold(file_name):
     with open(file_name) as file:
         bags = file.read().split('\n')[:-1]
 
-    
-    bags = [
-"light red bags contain 1 bright white bag, 2 muted yellow bags.",
-"dark orange bags contain 3 bright white bags, 4 muted yellow bags.",
-"bright white bags contain 1 shiny gold bag.",
-"muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.",
-"dark olive bags contain 3 faded blue bags, 4 dotted black bags.",
-"vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.",
-"faded blue bags contain no other bags.",
-"dotted black bags contain no other bags."]
-
     my_bag = "shiny gold"
-    counter = 0
-
+    tmp = [my_bag]
   
-    for bag in list(bags):
-        print(bag)
-        if my_bag in bag:
-            bags.remove(bag)
-        
-    #print(len(bags))
+    for t in tmp:
+        for bag in bags:
+            if t in bag:
+                bag_name = bag.split(" ")[0]+" "+bag.split(" ")[1]
+                bags.remove(bag)
+                tmp.append(bag_name)
+    
+    tmp = list(filter(lambda bag: bag != my_bag ,tmp))
+
+    return len(tmp)
+
+
+# class for handling 2nd problem, I used it to prepare a tree
+class Bag:
+    def __init__(self,name,amount):
+        self.name = name
+        self.amount = amount
+        self.children = []
+        self.sum_of_children = 0
+    
+    def __str__(self):
+        return self.name + " - " + str(self.amount)
+
+    def add_child(self, child):
+        self.children.append(child)
+    
+    def print_children(self):
+        if self.children:
+            for child in self.children:
+                print(child)
+                child.print_children()
+    
+    def count_bags(self):
+        _sum = self.sum_of_children
+        if self.children:
+            for child in self.children:
+                _sum += (child.amount + child.amount * child.count_bags())
+        else:
+            return 0
+        return _sum
+
+
+def individual_bags_in_shiny_gold(file_name):
+    with open(file_name) as file:
+        bags = file.read().split('\n')[:-1]
+
+    my_bag = Bag("shiny gold",1)
+
+    tmp = [my_bag]
+    
+    for t in tmp:
+        for bag in bags:
+            bag_name = bag.split(" ")[0] + " " + bag.split(" ")[1]
+            if bag_name == t.name:
+                inner_bags = bag.split("contain ")[1].split(", ")
+                for b in inner_bags:
+                    if inner_bags[0] != "no other bags.":
+                        x = b.split(" ")
+                        n_bag = Bag(x[1]+" "+x[2],int(x[0]))
+                        t.add_child(n_bag)
+                        tmp.append(n_bag)
+    
+    result = my_bag.count_bags()
+    return result
+
+
+# day8
+
+
 
 
 if __name__ == "__main__":
@@ -289,6 +340,9 @@ if __name__ == "__main__":
     # print(count_everyone_answered_yes("input6.txt"))
 
     # day7
-    contains_shiny_gold("input7.txt")
+    # print(contains_shiny_gold("input7.txt"))
+    # print(individual_bags_in_shiny_gold("input7.txt"))
+
+    # day8
     
 
