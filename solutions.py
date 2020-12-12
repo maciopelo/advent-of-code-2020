@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 
 
 # day1
@@ -305,9 +306,103 @@ def individual_bags_in_shiny_gold(file_name):
 
 
 # day8
+def find_infinite_loop(file_name, instructions = None):
+    if not instructions:
+        with open(file_name) as file:
+            instructions = list(map(lambda inst: [inst.split(" ")[0],int(inst.split(" ")[1]),0] ,file.read().split("\n")[:-1]))
+
+    curr_idx = 0
+    acc = 0
+    run = True
+    tmp = {}
+    while run:
+        
+        curr_inst = instructions[curr_idx]
+        curr_inst[2] += 1
+        
+        # adding suspected instr to tmp dict idx : instr
+        if curr_inst[2] == 2:
+            tmp[curr_idx] = curr_inst
+
+
+        # actual executing given instr
+        if curr_inst[0] == "jmp":
+            curr_idx += curr_inst[1]
+
+        elif curr_inst[0] == "acc":
+            acc = acc + curr_inst[1] if curr_inst[2] < 2 else acc
+            curr_idx += 1
+        else:
+            curr_idx += 1
+
+        # after incrementing we know the next idx
+        next_idx = curr_idx
+        
+        # if True - its OK we executed all instr in file without any loop, else still go to next instr
+        if next_idx == len(instructions):
+            run = False 
+        else:
+            next_inst = instructions[next_idx]
+
+
+        run = False if next_inst[2] == 2 or next_idx == len(instructions) else True
+        
+        # return acc, tmp - suspected instr if loop exists, next idx in queue
+    return acc,tmp,next_idx
+
+
+def fix_infinite_loop(file_name):
+    with open(file_name) as file:
+        instructions = list(map(lambda inst: [inst.split(" ")[0],int(inst.split(" ")[1]),0] ,file.read().split("\n")[:-1]))
+
+    # copy of original instr
+    instr_copy = deepcopy(instructions)
+    # get results of the given instr
+    results = find_infinite_loop("null",instructions)
+    # fetch from result suspected points of the loop
+    inst_that_loop = results[1]
+    
+
+    # we know that only one nop/jmp instr causes loop so only that interest us
+    instr_to_check = {}
+    for suspect in inst_that_loop:
+
+        if inst_that_loop[suspect][0] == "jmp":
+            instr_to_check[suspect] = inst_that_loop[suspect]
+        
+        if inst_that_loop[suspect][0] == "nop":
+            instr_to_check[suspect] = inst_that_loop[suspect]
 
 
 
+    # now we change every suspected jmp/nop into opposite and finnaly fix and get final acc
+    for idx in instr_to_check:
+
+        if instr_to_check[idx][0] == "jmp":
+            instr_copy[idx][0] = "nop"
+            r = find_infinite_loop("null",instr_copy)
+            
+            if r[2] == len(instr_copy):
+                return r[0]
+
+            for val in instr_copy:
+                val[2] = 0
+            instr_copy[idx][0] = "jmp"
+            
+        
+        if instr_to_check[idx][0] == "nop":
+            instr_copy[idx][0] = "jmp"
+            r = find_infinite_loop("null",instr_copy)
+
+            if r[2] == len(instr_copy):
+                return r[0]
+
+            for val in instr_copy:
+                val[2] = 0
+            instr_copy[idx][0] = "nop"
+           
+
+ 
 
 if __name__ == "__main__":
     pass
@@ -344,5 +439,8 @@ if __name__ == "__main__":
     # print(individual_bags_in_shiny_gold("input7.txt"))
 
     # day8
-    
+    # print(find_infinite_loop("input8.txt")[0])
+    # print(fix_infinite_loop("input8.txt"))
+
+    # day9
 
