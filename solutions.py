@@ -1,5 +1,6 @@
 import re
 from copy import deepcopy
+from functools import reduce
 
 
 # day1
@@ -400,10 +401,68 @@ def fix_infinite_loop(file_name):
             for val in instr_copy:
                 val[2] = 0
             instr_copy[idx][0] = "nop"
-           
 
- 
+# day9
+def find_incorrect_num(file_name, nums=None):
+    if not nums:
+        with open(file_name) as file:
+            nums = list(map(lambda x: int(x),file.read().split("\n")[:-1]))
+    
+    preamble = 25
+    for i in range(preamble,len(nums)):
+        tmp = [ [x,0] for x in nums[i-preamble:i] ]
+        
+        for j in range(len(tmp)):
+            diff = [nums[i] - tmp[j][0],0]
+            
+            if diff[0] < 0 or not (diff in tmp[j+1:]):
+                continue
+            else:
+                tmp[j][1] = 1
 
+        result = 0
+        for item in tmp:
+            result += item[1]
+        
+        if result > 0:
+            for item in tmp:
+                item[1] = 0
+        else:
+            return nums[i],i
+
+
+def find_encryption_weakness(file_name):
+    with open(file_name) as file:
+        nums = list(map(lambda x: int(x),file.read().split("\n")[:-1]))
+
+    invalid = find_incorrect_num('null',nums)
+    nums = nums[:invalid[1]]
+    invalid_num = invalid[0]
+    
+    tmp = []
+    curr_index = 0
+    start_index = 0
+    while sum(tmp) != invalid_num:
+        tmp.append(nums[start_index+curr_index])
+
+        _sum = sum(tmp)
+    
+        if _sum <= invalid_num:
+            curr_index += 1
+        else:
+            start_index += 1
+            curr_index = 0
+            tmp = []
+        
+    return max(tmp),min(tmp),max(tmp)+min(tmp)
+
+
+
+# day10
+
+
+
+    
 if __name__ == "__main__":
     pass
     # day1
@@ -443,4 +502,9 @@ if __name__ == "__main__":
     # print(fix_infinite_loop("input8.txt"))
 
     # day9
+    # print(find_incorrect_num("input9.txt"))
+    # print(find_encryption_weakness("input9.txt"))
+
+    # day10
+
 
