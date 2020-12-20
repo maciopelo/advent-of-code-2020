@@ -459,8 +459,99 @@ def find_encryption_weakness(file_name):
 
 
 # day10
+def count_joltages(file_name):
+    with open(file_name) as file:
+        adapters = list(map(lambda x: int(x),file.read().split("\n")[:-1]))
+    adapters.sort()
+
+    one_j = 1
+    three_j = 1
+    for i in range(len(adapters)-1):
+
+        if adapters[i+1] - adapters[i] == 3:
+            three_j += 1
+
+        if adapters[i+1] - adapters[i] == 1:
+            one_j += 1
+    
+    return one_j * three_j
 
 
+
+class Node:
+
+    def __init__(self,value):
+        self.value = value
+        self.children = []
+    
+    def __str__(self):
+        return str(self.value)
+
+    def print_children(self):
+        print(self.value)
+        for child in self.children:
+            child.print_children()
+        
+    
+    def inorder(self, root, value):
+        for child in self.children:
+            child.inorder(child,value)
+
+        if value - root.value <= 3 and value != root.value:
+            root.children.append(Node(value))
+
+    def count_leaves(self):
+
+        counter = 0
+        for child in self.children:
+            counter += child.count_leaves()
+
+        if not self.children:
+            return 1
+        else:
+            return counter
+
+
+def count_all_arrangements(file_name):
+    with open(file_name) as file:
+        adapters = list(map(lambda x: int(x),file.read().split("\n")[:-1]))
+    adapters.append(0)
+    adapters.append(max(adapters)+3)
+    adapters.sort(reverse=True)
+
+    children = []
+    counter = 0
+
+
+    # [22, 19, 16, 15, 12, 11, 10, 7, 6, 5, 4, 1, 0] test example
+    children.append(0) # last node has no children
+    children.append(1) # second from the end has exactly one child
+    children.append(1) # third from the end  has also exactly one child
+    # fourth could have 1 or 2 children depends:
+    if adapters[1] - adapters[3] <= 3:
+        children.append(2)
+    else:
+        children.append(1)
+
+    # now we are looking at the 5th element in list and so on to the end
+    for i in range(4,len(adapters)):
+        counter = 0
+        if i-3 >= 0 and (adapters[i-3] - adapters[i] <= 3):
+            counter += children[i-3]
+        
+
+        if i-2 >= 0 and (adapters[i-2] - adapters[i] <= 3):
+            counter += children[i-2]
+            
+
+        if i-1 >= 0 and (adapters[i-1] - adapters[i] <= 3):
+            counter += children[i-1]
+            
+        children.append(counter)
+    #print(adapters)
+    return children[(len(children)-1)]
+
+    
 
     
 if __name__ == "__main__":
@@ -506,5 +597,7 @@ if __name__ == "__main__":
     # print(find_encryption_weakness("input9.txt"))
 
     # day10
+    # print(count_joltages("input10.txt"))
+    # print(count_all_arrangements("input10.txt"))
 
 
