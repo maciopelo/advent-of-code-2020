@@ -1,6 +1,7 @@
 import re
 from copy import deepcopy
 from functools import reduce
+import numpy as np
 
 
 # day1
@@ -551,7 +552,159 @@ def count_all_arrangements(file_name):
     #print(adapters)
     return children[(len(children)-1)]
 
+
+def count_occupied_seats_part1(file_name):
+    with open(file_name) as file:
+        data = np.array([ list(line[:-1]) for line in file.readlines()])
+
+    height,width = data.shape
+    padding = 1
+
+    run = True
+
+    data_copy = deepcopy(data)
+
+    while run:
+        # validate corners
+        if data[0,0] == "L" and np.all(data[:2,:2] != "#"):
+            data_copy[0,0] = "#"
+
+        if data[0,width-1] == "L" and np.all(data[:2,-2:] != "#"):
+            data_copy[0,width-1] = "#"
+
+        if data[height-1,0] == "L" and np.all(data[-2:,:2] != "#"):
+            data_copy[height-1,0] = "#"
+
+        if data[height-1,width-1] == "L" and np.all(data[-2:,-2:] != "#"):
+            data_copy[height-1,width-1] = "#"
+
+
+        # validate bounds
+        for k in range(1,width-1):
+           
+            if data[0,k] == "L" and np.all(data[:2,k-1:k+2] != "#"):
+                data_copy[0,k] = "#"
+                
+            elif data[0,k] == "#" and len(list(filter(lambda a: a == "#" ,data[:2,k-1:k+2].flatten()))) >= 5:
+                data_copy[0,k] = "L"
+            
+            if data[height-1,k] == "L" and np.all(data[-2:,k-1:k+2] != "#"):
+                data_copy[height-1,k] = "#"
+
+            elif data[height-1,k] == "#" and len(list(filter(lambda a: a == "#" ,data[-2:,k-1:k+2].flatten()))) >= 5:
+                data_copy[height-1,k] = "L"
+        
+
+        for x in range(1,height-1):
+            if data[x,0] == "L" and np.all(data[x-1:x+2,:2] != "#"):
+                data_copy[x,0] = "#"
+
+            elif data[x,0]  == "#" and len(list(filter(lambda a: a == "#" ,data[x-1:x+2,:2].flatten()))) >= 5:
+                data_copy[x,0] = "L"
+
+            
+            if data[x,width-1] == "L" and np.all(data[x-1:x+2,-2:] != "#"):
+                data_copy[x,width-1] = "#"
+            
+            elif data[x,width-1] == "#" and len(list(filter(lambda a: a == "#" ,data[x-1:x+2,-2:] .flatten()))) >= 5:
+                data_copy[x,width-1] = "L"
+
+        # validate rest of seats
+        for i in range(padding,width-padding):
+            for j in range(padding,height-padding):
+                if data[j,i] == "L" and np.all(data[j-1:j+2,i-1:i+2] != "#"):
+                    data_copy[j,i] = "#"
+
+                elif data[j,i] == "#" and len(list(filter(lambda a: a == "#" ,data[j-1:j+2,i-1:i+2].flatten()))) >= 5:
+                    data_copy[j,i] = "L"
+
+
+        run = True if not np.all(data == data_copy) else False
+        data = deepcopy(data_copy)
+
+    result = len(list(filter(lambda a: a == "#" ,data_copy.flatten())))
+
+    return result
+
+
+def validate_corner(name,data):
+
+    height,width = data.shape
+    directions = [0,0,0]
+
+    if name == 'l_up':
+        for i in  range(1,width):
+            if data[i,i] == "#":
+                directions[0] = 1
+            if data[i,i] == "#":
+                directions[1] = 1
+
+        for j in range(1,height):
+            if data[j,0] == "#":
+                directions[2] = 1
     
+    if name == 'r_up':
+        for i in  range(1,width):
+            if data[0,width-1-i] == "#":
+                directions[0] = 1
+            if data[i,width-1-i] == "#":
+                directions[1] = 1 
+        for j in range(1,height):
+            if data[j,width-1] == "#":
+                directions[2] = 1
+
+    if name =='l_down':
+        for i in  range(1,width):
+            if data[height-1,i] == "#":
+                directions[0] = 1
+            if data[height-1-i,i] == "#":
+                directions[1] = 1 
+        for j in range(1,height):
+            if data[height-1-j,0] == "#":
+                directions[2] = 1
+    
+    if name == 'r_down':
+        for i in  range(1,width):
+            if data[9,width-1-i] == "#":
+                directions[0] = 1
+            if data[height-1-i,width-1-i] == "#":
+                directions[1] = 1 
+        for j in range(1,height):
+            if data[height-1-j,9] == "#":
+                directions[2] = 1
+
+    return directions
+
+def count_occupied_seats_part2(file_name):
+    with open(file_name) as file:
+        data = np.array([ list(line[:-1]) for line in file.readlines()])
+
+    height,width = data.shape
+    padding = 1
+
+    data_copy = deepcopy(data)
+
+    # validate corners
+    if data[0,0] == "L":
+        x = validate_corner("l_up",data)
+        print(x)
+
+    if data[0,width-1] == "L":
+        x = validate_corner("r_up",data)
+        print(x)
+
+    if data[height-1,0] == "L":
+        x = validate_corner("l_down",data)
+        print(x)
+    
+    if data[height-1,width-1] == "L":
+        x = validate_corner("r_down",data)
+        print(x)
+    
+
+
+
+
 
     
 if __name__ == "__main__":
@@ -599,5 +752,10 @@ if __name__ == "__main__":
     # day10
     # print(count_joltages("input10.txt"))
     # print(count_all_arrangements("input10.txt"))
+
+    # day11
+    # print(count_occupied_seats_part1('input11.txt'))
+    #count_occupied_seats_part2('test.txt')
+
 
 
